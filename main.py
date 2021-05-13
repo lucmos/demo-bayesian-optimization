@@ -38,6 +38,7 @@ def ask_acquisition_fn(session, y_mean: np.ndarray, y_std: np.ndarray) -> np.nda
         [
             "Probability of Improvement (PI)",
             "Expected Improvement (EI)",
+            "Upper Confidence Bound (UCB)",
         ],
         index=0,
     )
@@ -62,6 +63,9 @@ def ask_acquisition_fn(session, y_mean: np.ndarray, y_std: np.ndarray) -> np.nda
             session.y_sample.max() if session.y_sample.shape[0] >= 1 else 0,
             epsilon=epsilon,
         )
+    elif acquisition_fn == "Upper Confidence Bound (UCB)":
+        beta = st.number_input("Choose beta:", min_value=0.0, value=0.5)
+        return y_mean + beta * y_std
     else:
         raise RuntimeError()
 
