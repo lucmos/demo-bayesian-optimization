@@ -10,6 +10,9 @@ import acquisition_functions
 
 st.set_page_config(layout="wide")
 
+X_MIN = -5
+X_MAX = 5
+
 
 def restart_game(session) -> None:
     session.x_sample = np.empty(0)
@@ -21,11 +24,11 @@ def ask_observations(session) -> None:
     col1, col2 = st.beta_columns(2)
     with col1:
         obs_x = np.asarray(
-            [st.number_input("x:", min_value=0.0, max_value=5.0, value=1.0)]
+            [st.number_input("x:", min_value=0.0, max_value=5.0, value=0.0)]
         )
     with col2:
         obs_y = np.asarray(
-            [st.number_input("y:", min_value=-2.0, max_value=2.0, value=0.5)]
+            [st.number_input("y:", min_value=-2.0, max_value=2.0, value=1.0)]
         )
     if st.button("Add Observation"):
         session.x_sample = np.concatenate((session.x_sample, obs_x))
@@ -80,7 +83,7 @@ if col2.button("↻"):
 st.subheader("Observations")
 ask_observations(session)
 
-x = np.linspace(-1, 6, 1000)
+x = np.linspace(X_MIN, X_MAX, 1000)
 kernel = RBF(length_scale=1.0, length_scale_bounds=(1e-1, 10.0))
 gp = GaussianProcessRegressor(kernel=kernel)
 if session.x_sample.shape[0] >= 1:
@@ -143,7 +146,7 @@ fig.update_yaxes(
     constrain="domain",  # meanwhile compresses the xaxis by decreasing its "domain"
 )
 fig.update_xaxes(
-    range=[-0.1, 5.1],  # sets the range of xaxis
+    range=[X_MIN, X_MAX],  # sets the range of xaxis
     constrain="domain",  # meanwhile compresses the xaxis by decreasing its "domain"
 )
 fig.update_layout(
@@ -151,6 +154,11 @@ fig.update_layout(
 )
 
 st.plotly_chart(fig, use_container_width=True)
+
+# bound_mask = np.logical_and(x >= 0, x <= 5)
+# next_x = x[bound_mask][acquisition_y[bound_mask].argmax(0)]
+next_x = x[acquisition_y.argmax(0)]
+st.markdown(f"Next try according to the acquisition function: `x={next_x:.2f}`")
 
 st.markdown("---")
 st.markdown("Author: [`Luca Moschella`](https://luca.moschella.dev)")
