@@ -1,7 +1,15 @@
 import streamlit as st
 
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF
+from sklearn.gaussian_process.kernels import (
+    RBF,
+    Matern,
+    RationalQuadratic,
+    ExpSineSquared,
+    DotProduct,
+    ConstantKernel,
+    Kernel,
+)
 import numpy as np
 import plotly.graph_objs as go
 
@@ -31,6 +39,25 @@ def ask_observations(session) -> None:
     if st.button("Add Observation"):
         session.x_sample = np.concatenate((session.x_sample, obs_x))
         session.y_sample = np.concatenate((session.y_sample, obs_y))
+
+
+def ask_kernel_fn() -> Kernel:
+    kernels = {
+        "RBF": RBF(length_scale=1.0, length_scale_bounds=(1e-1, 10.0)),
+        "RationalQuadratic": RationalQuadratic(length_scale=1.0, alpha=0.1),
+        "ExpSineSquared": ExpSineSquared(
+            length_scale=1.0,
+            periodicity=3.0,
+            length_scale_bounds=(0.1, 10.0),
+            periodicity_bounds=(1.0, 10.0),
+        ),
+        "DotProduct": ConstantKernel(0.1, (0.01, 10.0))
+        * (DotProduct(sigma_0=1.0, sigma_0_bounds=(0.1, 10.0)) ** 2),
+        "Matern": Matern(length_scale=1.0, length_scale_bounds=(1e-1, 10.0), nu=1.5),
+    }
+
+    kernel_name = st.selectbox("Select kernel:", list(kernels.keys()))
+    return kernels[kernel_name]
 
 
 def ask_acquisition_fn(session, y_mean: np.ndarray, y_std: np.ndarray) -> np.ndarray:
@@ -82,7 +109,10 @@ st.subheader("Observations")
 ask_observations(session)
 
 x = np.linspace(X_MIN, X_MAX, 1000)
-kernel = RBF(length_scale=1.0, length_scale_bounds=(1e-1, 10.0))
+
+st.subheader("GP Kernel")
+kernel = ask_kernel_fn()
+
 gp = GaussianProcessRegressor(kernel=kernel)
 if session.x_sample.shape[0] >= 1:
     gp.fit(session.x_sample[:, None], session.y_sample)
