@@ -10,8 +10,8 @@ import acquisition_functions
 
 st.set_page_config(layout="wide")
 
-X_MIN = -5
-X_MAX = 5
+X_MIN = -5.0
+X_MAX = 5.0
 
 
 def restart_game(session) -> None:
@@ -24,12 +24,10 @@ def ask_observations(session) -> None:
     col1, col2 = st.beta_columns(2)
     with col1:
         obs_x = np.asarray(
-            [st.number_input("x:", min_value=0.0, max_value=5.0, value=0.0)]
+            [st.number_input("x:", min_value=X_MIN, max_value=X_MAX, value=0.0)]
         )
     with col2:
-        obs_y = np.asarray(
-            [st.number_input("y:", min_value=-2.0, max_value=2.0, value=1.0)]
-        )
+        obs_y = np.asarray([st.number_input("y:", value=1.0)])
     if st.button("Add Observation"):
         session.x_sample = np.concatenate((session.x_sample, obs_x))
         session.y_sample = np.concatenate((session.y_sample, obs_y))
