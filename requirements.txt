@@ -3,3 +3,4 @@ scipy
 streamlit==0.81.1
 scikit-learn==0.24.2
 plotly==4.14.3
+click==8.0.4
